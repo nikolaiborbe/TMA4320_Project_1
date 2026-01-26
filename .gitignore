@@ -21,3 +21,7 @@ wheels/
 
 # AI
 .claude
+
+# For UNC pc
+*.pyproject.toml
+*.uv.lock
