@@ -9,6 +9,7 @@ import numpy as np
 from .config import Config
 
 
+
 def init_nn_params(
     cfg: Config, key: jnp.ndarray | None = None, seed: int | None = None
 ) -> list[tuple[jnp.ndarray, jnp.ndarray]]:
