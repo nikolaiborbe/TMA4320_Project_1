@@ -23,5 +23,5 @@ wheels/
 .claude
 
 # For UNC pc
-*.pyproject.toml
-*.uv.lock
+pyproject.toml
+uv.lock
