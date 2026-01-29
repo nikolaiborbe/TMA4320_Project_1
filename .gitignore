@@ -21,3 +21,6 @@ wheels/
 
 # AI
 .claude
+
+#For not-UNC pc
+*.pyproject.toml
