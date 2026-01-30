@@ -72,6 +72,9 @@ class Config:
         """Heat source term at point (x, y, t)."""
         return jnp.where(self.is_source(x, y), self.source_strength, 0.0)
 
+    def set_sensor_pos(self, sensor_index: int, x_pos: float, y_pos: float):
+        """Set the new position of one of the sensors"""
+        self.sensor_locations = self.sensor_locations.at[sensor_index].set(jnp.array([x_pos,y_pos]))
 
 def load_config(path: str | Path = "config.yaml") -> Config:
     """Load configuration from YAML file."""
@@ -122,3 +125,4 @@ def load_config(path: str | Path = "config.yaml") -> Config:
         num_ic=data["training"]["num_ic"],
         num_bc=data["training"]["num_bc"],
     )
+

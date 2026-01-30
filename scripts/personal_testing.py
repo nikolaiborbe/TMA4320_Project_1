@@ -15,14 +15,10 @@ def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i : i + n]
 
-def set_sensor_pos(config: Config, sensor_index: int, x_pos: float, y_pos: float):
-    config.sensor_locations = config.sensor_locations.at[sensor_index].set(jnp.array([x_pos,y_pos]))
-    return config
-
 def load_config_1():
     config: Config = load_config()
     # Replace all sensors with just one at (0, 0)
-    config = set_sensor_pos(config, 0, 0, 1)
+    config.set_sensor_pos(0, 0, 1)
 
     return config
 
