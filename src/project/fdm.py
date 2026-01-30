@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .config import Config
+from project import (Config)
 
 
 def solve_heat_equation(
@@ -139,3 +139,14 @@ def _build_rhs(
     rhs[:, -1] += ry * (cfg.h * dy / cfg.k) * bc_term
 
     return rhs.flatten()
+
+if __name__ == "__main__":
+
+    from project import (
+        solve_heat_equation,
+        load_config,
+        Config
+    )
+
+    config: Config = load_config()
+    solve_heat_equation(config)
