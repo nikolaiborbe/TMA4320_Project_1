@@ -11,6 +11,8 @@ from project import (
 def main():
     cfg = load_config("config.yaml")
 
+    cfg.solve_heat_equation()
+
     print("Solving heat equation with FDM...")
     x, y, t, T_fdm = solve_heat_equation(cfg)
 
