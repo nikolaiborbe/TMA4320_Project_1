@@ -1,11 +1,9 @@
-"""Finite Difference Method solver for the 2D heat equation."""
-
 import numpy as np
+from project import Config
 
-from .config import Config
 
 
-def solve_heat_equation(
+def sensorerror(
     cfg: Config,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Solve the 2D heat equation using implicit Euler.
@@ -36,27 +34,31 @@ def solve_heat_equation(
     # Placeholder initialization — replace this with your implementation
     T: np.ndarray = np.zeros((cfg.nt, cfg.nx, cfg.ny))
     T_0 = np.zeros((cfg.nx, cfg.ny))
+    Tmean = np.zeros()
 
+    sens_errors = np.zeros(len(t)-1)
     first = True
     for n in range(len(t) - 1):
         if first: T_0.fill(cfg.T_outside)
         else: T_0 = T[n]
 
-        b_0 = _build_rhs(cfg, T_0, X, Y, dx, dy, dt, t[n+1])
+        b_0 = _build_rhs2(cfg, T_0, X, Y, dx, dy, dt, t[n+1])[0]
         A = _build_matrix(cfg, dx, dy, dt)
 
         T_1 = np.linalg.solve(A, b_0)
         T[n + 1] = T_1.reshape(cfg.nx, cfg.ny)
 
+        sens_errors[n] = _build_rhs2(cfg, T_0, X, Y, dx, dy, dt, t[n+1])[1]
+
         first = False
 
-
+    error_mean = np.mean(sens_errors)
     #######################################################################
     # Oppgave 3.2: Slutt
     #######################################################################
-
-    return x, y, t, T
-
+    print(error_mean)
+    return x, y, t, T, error_mean
+    
 
 def _build_matrix(cfg: Config, dx: float, dy: float, dt: float) -> np.ndarray:
     """Build the implicit Euler system matrix."""
@@ -103,7 +105,7 @@ def _build_matrix(cfg: Config, dx: float, dy: float, dt: float) -> np.ndarray:
     return A
 
 
-def _build_rhs(
+def _build_rhs2(
     cfg: Config,
     T_curr,
     X: np.ndarray,
@@ -124,9 +126,40 @@ def _build_rhs(
     """
     rhs = T_curr.copy()
 
+    Tvals = list()
+    for i in range(cfg.nx):
+        row = list()
+        for j in range(cfg.ny):
+            if cfg.is_source(j,i):
+                pass
+            else:
+                row.append(rhs[i][j])
+        Tvals.append(row)
+
+    Tmean = np.mean(np.array(Tvals))
+    
+    #Bruk sensordata til å regne feil og styre varmekilde
+    T_sens_vals = list()
+    for pos in cfg.sensor_locations:                                        #pos = [x,y], styres med set_sensor_pos(x,y)
+        i,j = pos[0],pos[1]                                                 #x=i y=j
+        sens_val = rhs[i][j] + np.random.normal(0, cfg.sensor_noise)        #Normalfordelt støy
+        T_sens_vals.append(sens_val)
+
+    T_sens_mean = np.mean(np.array(T_sens_vals))
+
+
     # Heat source
-    q = np.array(cfg.heat_source(X, Y, t_next))
+    T_goal = 20
+
+    if T_goal < T_sens_mean:
+        q = 0
+    else:
+        q = np.array(cfg.heat_source(X, Y, t_next))
+    
     rhs += dt * q
+
+    #Sensor error
+    sens_error = abs(Tmean-T_sens_mean)
 
     # Robin BC contributions
     rx = cfg.alpha * dt / dx**2
@@ -138,4 +171,4 @@ def _build_rhs(
     rhs[:, 0] += ry * (cfg.h * dy / cfg.k) * bc_term
     rhs[:, -1] += ry * (cfg.h * dy / cfg.k) * bc_term
 
-    return rhs.flatten()
+    return rhs.flatten(), sens_error
