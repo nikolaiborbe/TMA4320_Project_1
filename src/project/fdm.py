@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .config import Config
+from project import (Config)
 
 
 def solve_heat_equation(
