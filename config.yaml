@@ -43,6 +43,7 @@ sensors:
 
   locations:
     - [5.0, 2.5]        # Center of room
+   # - [2.5, 2.5]        # Between left wall and heat source
     # At the center and corner of walls
     - [5.0, 5.0]
     - [5.0, 0.0]

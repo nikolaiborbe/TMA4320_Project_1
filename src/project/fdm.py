@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .config import Config
+from project import (Config)
 
 
 def solve_heat_equation(
@@ -34,7 +34,22 @@ def solve_heat_equation(
     #######################################################################
 
     # Placeholder initialization — replace this with your implementation
-    T = np.zeros((cfg.nt, cfg.nx, cfg.ny))
+    T: np.ndarray = np.zeros((cfg.nt, cfg.nx, cfg.ny))
+    T_0 = np.zeros((cfg.nx, cfg.ny))
+
+    first = True
+    for n in range(len(t) - 1):
+        if first: T_0.fill(cfg.T_outside)
+        else: T_0 = T[n]
+
+        b_0 = _build_rhs(cfg, T_0, X, Y, dx, dy, dt, t[n+1])
+        A = _build_matrix(cfg, dx, dy, dt)
+
+        T_1 = np.linalg.solve(A, b_0)
+        T[n + 1] = T_1.reshape(cfg.nx, cfg.ny)
+
+        first = False
+
 
     for t_idx in range(1, cfg.nt):
         A = _build_matrix(cfg, dx, dy, dt)
@@ -94,8 +109,25 @@ def _build_matrix(cfg: Config, dx: float, dy: float, dt: float) -> np.ndarray:
     return A
 
 
-def _build_rhs(cfg: Config, T_curr, X, Y, dx, dy, dt, t_next):
-    """Build right-hand side for implicit system."""
+def _build_rhs(
+    cfg: Config,
+    T_curr,
+    X: np.ndarray,
+    Y: np.ndarray,
+    dx: float,
+    dy: float,
+    dt: float,
+    t_next: int,
+) -> np.ndarray:
+    """Build right-hand side for implicit system.
+
+    Args:
+        T_curr: np.ndarray, shape(50, 25)
+
+    Returns:
+        np.ndarray, shape(1250)
+
+    """
     rhs = T_curr.copy()
 
     # Heat source
