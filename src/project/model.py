@@ -45,7 +45,13 @@ def init_pinn_params(cfg: Config, seed: int | None = None):
     #######################################################################
 
     # Placeholder initialization — replace this with your implementation
-    pinn_params = {}
+    pinn_params = {
+        "nn": init_nn_params(cfg),
+        "log_alpha": jax.random.normal(key, (1,)), # np.log defaults to np.ln()
+        "log_power": jax.random.normal(key, (1,)),
+        "log_k": jax.random.normal(key, (1,)),
+        "log_h": jax.random.normal(key, (1,))
+    }
 
     #######################################################################
     # Oppgave 5.1: Slutt
