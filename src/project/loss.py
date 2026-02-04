@@ -4,7 +4,8 @@ import jax.numpy as jnp
 from jax import grad, vmap
 
 from .config import Config
-from .model import forward
+from .model import forward, init_pinn_params
+
 
 
 def data_loss(
@@ -90,7 +91,24 @@ def physics_loss(pinn_params, interior_points, cfg: Config):
     #######################################################################
 
     # Placeholder initialization — replace this with your implementation
-    physics_loss_val = None
+
+    params = init_pinn_params(cfg)
+
+    alpha = jnp.exp(params["log_alpha"])
+    nn = jnp.exp(params["nn"])
+    f: jnp.ndarray = forward(nn,x,y,t,cfg)
+    P = jnp.exp(params["log_power"])
+
+    physics_loss_val = 0
+    for i in range(len(f)):
+        for ix in x:
+            for iy in y:
+                if cfg.is_source(ix, iy):
+                    physics_loss_val += (grad(f,2)(ix,iy,t)-alpha*grad(grad(f))(ix,iy,t)-alpha*grad(grad(f,1),1)(ix,iy,t)-P)**2
+                else:
+                    physics_loss_val += (grad(f,2)(ix,iy,t)-alpha*grad(grad(f))(ix,iy,t)-alpha*grad(grad(f,1),1)(ix,iy,t))**2
+
+    physics_loss_val = physics_loss_val/(len(x)*len(y))
 
     #######################################################################
     # Oppgave 5.2: Slutt
