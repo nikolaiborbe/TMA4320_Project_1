@@ -32,13 +32,13 @@ def main():
     # Oppgave 4.4: Start
     #######################################################################
 
-    print("generate training data...")
+    print("Generating training data...")
     x, y, t, T_fdm, sensor_data = generate_training_data(cfg)
 
-    print("Train NN...")
+    #print("Training NN...")
     nn_params, losses = train_nn(sensor_data, cfg)
 
-    print("Predict on gridd...")
+    print("Predicting on grid...")
     T_pred = predict_grid(nn_params, x, y, t, cfg)
 
     print("\nGenerating NN visualizations...")
