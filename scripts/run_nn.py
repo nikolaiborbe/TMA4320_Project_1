@@ -1,4 +1,15 @@
-"""Script for training and plotting the NN model."""
+"""Script for training and plotting the NN model.
+
+I scripts/run_nn.py , skriv et liknende script som scripts/run_fdm.py for å trene og
+evaluere NN. Plott hvordan tapene utvikler seg i løpet av treningen, og visualiser prediksjonene
+fra det ferdig trente nettverket.
+Tips:
+• Benytt generate_training_data(), train_nn() , og den ferdigskrevne hjelpefunksjonen
+predict_grid() for å generere data, trene nettverket, og gjøre prediksjoner på
+hele det diskretiserte domenet.
+
+
+"""
 
 import os
 
@@ -20,6 +31,27 @@ def main():
     #######################################################################
     # Oppgave 4.4: Start
     #######################################################################
+
+    print("generate training data...")
+    x, y, t, T_fdm, sensor_data = generate_training_data(cfg)
+
+    print("Train NN...")
+    nn_params, losses = train_nn(cfg, sensor_data)
+
+    print("Predict on gridd...")
+    T_pred = predict_grid(cfg, nn_params, x, y, t)
+
+    print("\nGenerating NN visualizations...")
+    plot_snapshots(
+        x,
+        y,
+        t,
+        T_pred,
+        save_path="output/NN/NN_snapshots.png",
+    )
+    create_animation(
+        x, y, t, T_pred, title="NN", save_path="output/NN/NN_animation.gif"
+    )
 
     #######################################################################
     # Oppgave 4.4: Slutt
