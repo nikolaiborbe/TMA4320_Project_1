@@ -22,6 +22,27 @@ def main():
     # Oppgave 5.4: Start
     #######################################################################
 
+    print("generate training data...")
+        x, y, t, T_fdm, sensor_data = generate_training_data(cfg)
+
+    print("Train NN...")
+    pin_params, losses = train_pinn(cfg, sensor_data)
+
+    print("Predict on gridd...")
+    T_pred = predict_grid(cfg, nn_params, x, y, t)
+
+    print("\nGenerating NN visualizations...")
+    plot_snapshots(
+        x,
+        y,
+        t,
+        T_pred,
+        save_path="output/NN/NN_snapshots.png",
+    )
+    create_animation(
+        x, y, t, T_pred, title="NN", save_path="output/NN/NN_animation.gif"
+    )
+
     #######################################################################
     # Oppgave 5.4: Slutt
     #######################################################################
