@@ -92,23 +92,28 @@ def physics_loss(pinn_params, interior_points, cfg: Config):
 
     # Placeholder initialization — replace this with your implementation
 
-    params = init_pinn_params(cfg)
+    def _pde_residual_scalar(pinn_params, x, y, t, cfg: Config):
+        def T_fn(x, y, t):
+            return forward(pinn_params["nn"], x, y, t, cfg)
 
-    alpha = jnp.exp(params["log_alpha"])
-    nn = jnp.exp(params["nn"])
-    f: jnp.ndarray = forward(nn,x,y,t,cfg)
-    P = jnp.exp(params["log_power"])
+        # Compute spatial gradients using automatic differentiation
+        T_xx = grad(grad(T_fn, 0),0)(x, y, t)
+        T_yy = grad(grad(T_fn, 1),1)(x, y, t)
+        T_t = grad(T_fn,2)(x,y,t)
 
-    physics_loss_val = 0
-    for i in range(len(f)):
-        for ix in x:
-            for iy in y:
-                if cfg.is_source(ix, iy):
-                    physics_loss_val += (grad(f,2)(ix,iy,t)-alpha*grad(grad(f))(ix,iy,t)-alpha*grad(grad(f,1),1)(ix,iy,t)-P)**2
-                else:
-                    physics_loss_val += (grad(f,2)(ix,iy,t)-alpha*grad(grad(f))(ix,iy,t)-alpha*grad(grad(f,1),1)(ix,iy,t))**2
+        alpha = jnp.exp(pinn_params["log_alpha"])
+        q = cfg.heat_source(x,y,t)
 
-    physics_loss_val = physics_loss_val/(len(x)*len(y))
+        residual = T_t - alpha*(T_xx + T_yy)-q
+
+        return residual
+
+    residuals = vmap(
+    lambda xi, yi, ti: _pde_residual_scalar(pinn_params, xi, yi, ti, cfg)
+    )(x, y, t)
+
+
+    physics_loss_val = jnp.mean(residuals**2)
 
     #######################################################################
     # Oppgave 5.2: Slutt
