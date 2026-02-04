@@ -107,7 +107,7 @@ def _build_rhs_save_data(
 
     # Temperature regulation
     energy_usage = 0
-    if T_sens_mean < 1:
+    if T_sens_mean < 5:                                 # Less than desired temperature
         rhs += dt * q
         energy_usage += cfg.source_strength * dt        # Keep track of energy consumption (unit: degrees)
 
@@ -175,8 +175,8 @@ def solve_heat_equation_save_data(
         energy_usage[n] = energy
         sens_errors[n] = error
 
-    Power_eff = np.sum(energy_usage)/(len(t)-1)          # Effective power [degrees/hour]
-    Error_eff = np.sum(sens_errors)/(len(t)-1)           # Avg error in sensor reading
+    Power_eff = np.sum(energy_usage)/(cfg.t_max-cfg.t_min)          # Effective power [degrees/hour]
+    Error_eff = np.sum(sens_errors)/(len(t)-1)                      # Avg error in sensor reading [degrees]
 
     #######################################################################
     # Oppgave 3.2: Slutt
