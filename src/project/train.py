@@ -35,26 +35,25 @@ def train_nn(
     # Oppgave 4.3: Start
     #######################################################################
 
-    def objective_fn(ic_loss, data_loss):
-        return cfg.lambda_ic*ic_loss + cfg.lambda_data*data_loss
+    def objective_fn(nn_params, ic_sample_locs):
+        ICL = ic_loss(nn_params, ic_sample_locs, cfg)
+        DL = data_loss(nn_params, sensor_data, cfg)
+        total_loss = cfg.lambda_ic*ICL + cfg.lambda_data*DL
+        return total_loss, (DL, ICL)
 
     for i in tqdm(range(cfg.num_epochs), desc='Training NN'):
         ic_epoch, key = sample_ic(key, cfg)
 
-        ic_loss_epoch = ic_loss(nn_params, ic_epoch, cfg)
-        data_loss_epoch = data_loss(nn_params, sensor_data, cfg)
-        obj_val, obj_grad = jax.value_and_grad(objective_fn)(ic_loss_epoch, data_loss_epoch)
+        outputs, grad = jax.value_and_grad(objective_fn, has_aux=True)(nn_params, ic_epoch)    #Outputs: tuple[float, tuple]
+        obj_val = outputs[0]
+        errs = objective_fn(nn_params, ic_epoch)[1]
 
         # Update the nn_params and losses dictionary
-        holder = adam_step(nn_params, obj_grad, adam_state, lr=cfg.learning_rate)
-        nn_params: list[tuple[jnp.ndarray, jnp.ndarray]] = holder[0]
-        adam_state = holder[1]
-        losses["data"].append(data_loss_epoch)
-        losses["ic"].append(ic_loss_epoch)
+        losses["data"].append(errs[0])
+        losses["ic"].append(errs[1])
         losses["total"].append(obj_val)
+        nn_params, adam_state = adam_step(nn_params, grad, adam_state, lr=cfg.learning_rate)
 
-    
-        
     #######################################################################
     # Oppgave 4.3: Slutt
     #######################################################################
