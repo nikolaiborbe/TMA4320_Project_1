@@ -34,7 +34,7 @@ def train_nn(
     #######################################################################
     # Oppgave 4.3: Start
     #######################################################################
-
+    @jax.jit
     def objective_fn(nn_params, ic_sample_locs):
         ICL = ic_loss(nn_params, ic_sample_locs, cfg)
         DL = data_loss(nn_params, sensor_data, cfg)
