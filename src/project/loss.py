@@ -4,7 +4,8 @@ import jax.numpy as jnp
 from jax import grad, vmap
 
 from .config import Config
-from .model import forward
+from .model import forward, init_pinn_params
+
 
 
 def data_loss(
@@ -89,17 +90,30 @@ def physics_loss(pinn_params, interior_points, cfg: Config):
     # Oppgave 5.2: Start
     #######################################################################
 
-    f_nn = forward(pinn_params['nn'], x,y,t, cfg)
-    df_dt = grad(forward, 3)(pinn_params['nn'], x,y,t)
-    df_dx = grad(forward, 1)(pinn_params['nn'], x,y,t)
-    df_dxx = grad(df_dx, 1)(pinn_params['nn'], x,y,t)
+    # Placeholder initialization — replace this with your implementation
 
-    alpha = jnp.exp(pinn_params['log_alpha'])
-    power = jnp.exp(pinn_params['log_power'])
-    k = jnp.exp(pinn_params['log_k'])
-    h = jnp.exp(pinn_params['log_h'])
+    def _pde_residual_scalar(pinn_params, x, y, t, cfg: Config):
+        def T_fn(x, y, t):
+            return forward(pinn_params["nn"], x, y, t, cfg)
 
-    physics_loss_val = jnp.mean((df_dt - alpha*df_dxx)**2)
+        # Compute spatial gradients using automatic differentiation
+        T_xx = grad(grad(T_fn, 0),0)(x, y, t)
+        T_yy = grad(grad(T_fn, 1),1)(x, y, t)
+        T_t = grad(T_fn,2)(x,y,t)
+
+        alpha = jnp.exp(pinn_params["log_alpha"])
+        q = cfg.heat_source(x,y,t)
+
+        residual = T_t - alpha*(T_xx + T_yy)-q
+
+        return residual
+
+    residuals = vmap(
+    lambda xi, yi, ti: _pde_residual_scalar(pinn_params, xi, yi, ti, cfg)
+    )(x, y, t)
+
+
+    physics_loss_val = jnp.mean(residuals**2)
 
     #######################################################################
     # Oppgave 5.2: Slutt
