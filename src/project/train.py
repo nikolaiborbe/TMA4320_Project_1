@@ -44,14 +44,15 @@ def train_nn(
     for i in tqdm(range(cfg.num_epochs), desc='Training NN'):
         ic_epoch, key = sample_ic(key, cfg)
 
-        obj_val, obj_grad = jax.value_and_grad(objective_fn, has_aux=True)(nn_params, ic_epoch)
+        outputs, grad = jax.value_and_grad(objective_fn, has_aux=True)(nn_params, ic_epoch)    #Outputs: tuple[float, tuple]
+        obj_val = outputs[0]
         errs = objective_fn(nn_params, ic_epoch)[1]
 
         # Update the nn_params and losses dictionary
         losses["data"].append(errs[0])
         losses["ic"].append(errs[1])
         losses["total"].append(obj_val)
-        nn_params, adam_state = adam_step(nn_params, obj_grad, adam_state, lr=cfg.learning_rate)
+        nn_params, adam_state = adam_step(nn_params, grad, adam_state, lr=cfg.learning_rate)
 
     #######################################################################
     # Oppgave 4.3: Slutt
