@@ -36,10 +36,10 @@ def main():
     x, y, t, T_fdm, sensor_data = generate_training_data(cfg)
 
     print("Train NN...")
-    nn_params, losses = train_nn(cfg, sensor_data)
+    nn_params, losses = train_nn(sensor_data, cfg)
 
     print("Predict on gridd...")
-    T_pred = predict_grid(cfg, nn_params, x, y, t)
+    T_pred = predict_grid(nn_params, x, y, t, cfg)
 
     print("\nGenerating NN visualizations...")
     plot_snapshots(
