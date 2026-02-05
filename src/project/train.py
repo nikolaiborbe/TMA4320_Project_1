@@ -83,22 +83,25 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
     #######################################################################
 
     @jax.jit
-    def objective_fn(pinn_params, interior_locs, ic_locs, bc_locs):
-        PhysLoss = physics_loss(pinn_params, interior_locs, cfg)
-        icLoss = ic_loss(pinn_params['nn'], ic_locs, cfg)
-        bcLoss = bc_loss(pinn_params, bc_locs, cfg)
-        DataLoss = data_loss(pinn_params['nn'], sensor_data, cfg)
-        TotalLoss = cfg.lambda_physics*PhysLoss + cfg.lambda_ic*icLoss + cfg.lambda_bc*bcLoss + cfg.lambda_data*DataLoss
-        return TotalLoss, (DataLoss, PhysLoss, icLoss, bcLoss)
+    def step(pinn_params, interior_locs, ic_locs, bc_locs):
+        def objective_fn(pinn_params):
+            PhysLoss = physics_loss(pinn_params, interior_locs, cfg)
+            icLoss = ic_loss(pinn_params['nn'], ic_locs, cfg)
+            bcLoss = bc_loss(pinn_params, bc_locs, cfg)
+            DataLoss = data_loss(pinn_params['nn'], sensor_data, cfg)
+            TotalLoss = cfg.lambda_physics*PhysLoss + cfg.lambda_ic*icLoss + cfg.lambda_bc*bcLoss + cfg.lambda_data*DataLoss
+            return TotalLoss, (DataLoss, PhysLoss, icLoss, bcLoss)
+        
+        outputs, grad = jax.value_and_grad(objective_fn, has_aux=True)(pinn_params)    #Outputs: tuple[float, tuple]
+        return outputs, grad
 
     for i in tqdm(range(cfg.num_epochs), desc='Training PINN'):
         interior_epoch, key = sample_interior(key, cfg)
         ic_epoch, key = sample_ic(key, cfg)
         bc_epoch, key = sample_bc(key, cfg)
 
-        outputs, grad = jax.value_and_grad(objective_fn, has_aux=True)(pinn_params, interior_epoch, ic_epoch, bc_epoch)    #Outputs: tuple[float, tuple]
-        obj_val = outputs[0]
-        errs = objective_fn(pinn_params, interior_epoch, ic_epoch, bc_epoch)[1]
+        outputs, grad = step(pinn_params, interior_epoch, ic_epoch, bc_epoch)
+        obj_val, errs = outputs
 
         # Update the nn_params and losses dictionary
         losses["total"].append(obj_val)
