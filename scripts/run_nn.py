@@ -53,7 +53,7 @@ def main():
         x, y, t, T_pred, title="NN", save_path="output/NN/NN_animation.gif"
     )
 
-    S
+    epochs = np.arange(len(next(iter(losses.values()))))
 
     # Plott losses
     for key, value in losses.items():
