@@ -53,19 +53,18 @@ def main():
         x, y, t, T_pred, title="NN", save_path="output/NN/NN_animation.gif"
     )
 
-    epochs = np.arange(len(next(iter(losses.values()))))
+    S
 
     # Plott losses
     for key, value in losses.items():
         plt.plot(epochs, value, label=key)
-        
+
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.title("Training Losses")
     plt.yscale("log")  # ofte nyttig
     plt.legend()
     plt.grid(True)
-    plt.tight_layout()
     plt.savefig("output/NN/losses.png", dpi=200)
     plt.close()
 

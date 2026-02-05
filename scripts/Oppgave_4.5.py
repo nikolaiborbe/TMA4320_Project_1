@@ -8,9 +8,12 @@ from project import (
     predict_grid,
     train_nn,
 )
-cfg = load_config("config.yaml")
-time = np.linspace(cfg.t_min, cfg.t_max, cfg.nt)
 
+cfg = load_config("config.yaml")
+
+t = np.linspace(cfg.t_min, cfg.t_max, cfg.nt)
+
+"""
 print("Solving heat equation with FDM...")
 x, y, t, T_fdm = solve_heat_equation(cfg)
 
@@ -22,15 +25,16 @@ nn_params, losses = train_nn(sensor_data, cfg)
 
 print("Predict on gridd...")
 T_pred = predict_grid(nn_params, x, y, t, cfg)
- 
+"""
+
 # NN vs FDM
 error = T_pred - T_fdm
-rmse = np.sqrt(np.mean(error**2))
-print(rmse)
+mse = np.mean(error**2)
+print(mse)
 
 # Plott
-plt.plot(T_pred.flatten(), time)
-plt.plot(T_fdm.flatten(), time)
+plt.plot(T_pred, t)
+plt.plot(T_fdm, t)
 plt.xlabel("Temperature")
 plt.ylabel("time t")
 plt.show()

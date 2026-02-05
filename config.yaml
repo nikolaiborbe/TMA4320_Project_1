@@ -42,7 +42,7 @@ sensors:
   noise_std: 0.5       # Measurement noise (std dev in degrees)
 
   locations:
-    #- [5.0, 2.5]        # Center of room
+    - [5.0, 2.5]        # Center of room
     # Between walls and heat source
     #- [2.5, 2.5]
     #- [7.5, 2.5]
