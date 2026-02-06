@@ -60,18 +60,16 @@ def main():
     plt.savefig("output/Pinn/losses.png", dpi=200)
     plt.close()
 
-    """
-    # Plott parameters
-    pinn_params = {
-        "nn": init_nn_params(cfg, key=nn_key),
-        "log_alpha": np.log(jax.random.normal(scalars_key, (1, ))), # np.log defaults to np.ln()
-        "log_power": np.log(20),
-        "log_k": np.log(0.09),
-        "log_h": np.log(0.17)
-    }
-    """
    
-    
+    # Print parameters
+    print("Pinn parameters:")
+    for key, value in pinn_params.items():
+        if key == "nn":
+            pass
+        else:
+            print(f"{key[4:]}: {jnp.exp(value[0]):.4f}" if key == "log_alpha" else f"{key[4:]}: {jnp.exp(value):.4f}")
+
+ 
 
     #######################################################################
     # Oppgave 5.4: Slutt

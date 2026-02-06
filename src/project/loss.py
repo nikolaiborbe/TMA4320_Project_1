@@ -102,7 +102,8 @@ def physics_loss(pinn_params, interior_points, cfg: Config):
         T_t = grad(T_fn,2)(x,y,t)
 
         alpha = jnp.exp(pinn_params["log_alpha"])
-        q = cfg.heat_source(x,y,t)
+        Power = jnp.exp(pinn_params["log_power"])
+        q = jnp.where(cfg.is_source(x, y), Power, 0.0)
 
         residual = T_t - alpha*(T_xx + T_yy)-q
 
